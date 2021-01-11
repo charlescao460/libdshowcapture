@@ -1,6 +1,8 @@
 *.exe
 *.dll
 
+.vs/
+
 /release/
 /debug/
 /builds/
