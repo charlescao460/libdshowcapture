@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,12 @@
 #define ROCKET_WAIT_TIME_MS 5000
 
 namespace DShow {
+
+/* device-vendor.cpp API */
+extern bool IsVendorVideoHDR(IKsPropertySet *propertySet);
+extern void SetVendorVideoFormat(IKsPropertySet *propertySet,
+				 bool hevcTrueAvcFalse);
+extern void SetVendorTonemapperUsage(IBaseFilter *filter, bool enable);
 
 bool SetRocketEnabled(IBaseFilter *encoder, bool enable);
 
@@ -112,12 +118,31 @@ void HDevice::Receive(bool isVideo, IMediaSample *sample)
 	if (isVideo ? !videoConfig.callback : !audioConfig.callback)
 		return;
 
+	if (reactivatePending)
+		return;
+
 	/* auto-rotation for devices such as streamcam */
 	if (isVideo && rotatableDevice) {
 		ComQIPtr<IAMCameraControl> cc(videoFilter);
 		if (cc) {
 			long ccf = 0;
 			cc->Get(CameraControl_Roll, &roll, &ccf);
+		}
+	}
+
+	if (isVideo && videoConfig.reactivateCallback) {
+		ComQIPtr<IKsPropertySet> propertySet(videoFilter);
+		if (propertySet) {
+			const bool hdr = IsVendorVideoHDR(propertySet);
+			if (deviceHdrSignal != hdr) {
+				deviceHdrSignal = hdr;
+#ifdef ENABLE_HEVC
+				SetVendorVideoFormat(propertySet, hdr);
+#endif
+				videoConfig.reactivateCallback();
+				reactivatePending = true;
+				return;
+			}
 		}
 	}
 
@@ -381,6 +406,18 @@ bool HDevice::SetVideoConfig(VideoConfig *config)
 		return false;
 	}
 
+	deviceHdrSignal = false;
+	reactivatePending = false;
+
+	ComPtr<IKsPropertySet> propertySet = ComQIPtr<IKsPropertySet>(filter);
+	if (propertySet) {
+		const bool hdr = IsVendorVideoHDR(propertySet);
+#ifdef ENABLE_HEVC
+		SetVendorVideoFormat(propertySet, hdr);
+#endif
+		deviceHdrSignal = hdr;
+	}
+
 	videoConfig = *config;
 
 	if (!SetupVideoCapture(filter, videoConfig))
@@ -518,7 +555,7 @@ bool HDevice::SetupAudioOutput(IBaseFilter *filter, AudioConfig &config)
 	}
 
 	audioFilter = filter;
-	audioOutput = outputFilter;
+	audioOutput = std::move(outputFilter);
 
 	graph->AddFilter(audioOutput, L"Audio Output Filter");
 	if (!config.useVideoDevice)
@@ -738,6 +775,11 @@ bool HDevice::ConnectFilters()
 		return false;
 
 	if (videoCapture != NULL) {
+		/* use hardware tonemapper for narrow format (SDR), not wide (HDR) */
+		const bool enable_tonemapper = videoConfig.format !=
+					       VideoFormat::P010;
+		SetVendorTonemapperUsage(videoFilter, enable_tonemapper);
+
 		success = ConnectPins(PIN_CATEGORY_CAPTURE, MEDIATYPE_Video,
 				      videoFilter, videoCapture);
 		if (!success) {
@@ -830,4 +872,4 @@ void HDevice::Stop()
 	}
 }
 
-}; /* namespace DShow */
+} /* namespace DShow */

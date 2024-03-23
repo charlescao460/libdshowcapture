@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,9 @@ class OutputPin : public IPin, public IAMStreamConfig, public IKsPropertySet {
 
 	MediaType mt;
 	VideoFormat curVFormat;
-	long long curInterval;
-	int curCX;
-	int curCY;
+	long long curInterval = 0;
+	int curCX = 0;
+	int curCY = 0;
 	bool setSampleMediaType = false;
 
 	ComPtr<IPin> connectedPin;
@@ -54,6 +54,7 @@ class OutputPin : public IPin, public IAMStreamConfig, public IKsPropertySet {
 	bool AllocateBuffers(IPin *target, bool connecting = false);
 
 public:
+	OutputPin(OutputFilter *filter);
 	OutputPin(OutputFilter *filter, VideoFormat format, int cx, int cy,
 		  long long interval);
 	virtual ~OutputPin();
@@ -143,6 +144,7 @@ protected:
 	ComPtr<IReferenceClock> clock;
 
 public:
+	OutputFilter();
 	OutputFilter(VideoFormat format, int cx, int cy, long long interval);
 	virtual ~OutputFilter();
 

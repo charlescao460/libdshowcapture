@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -30,8 +30,8 @@
 #endif
 
 #define DSHOWCAPTURE_VERSION_MAJOR 0
-#define DSHOWCAPTURE_VERSION_MINOR 8
-#define DSHOWCAPTURE_VERSION_PATCH 6
+#define DSHOWCAPTURE_VERSION_MINOR 9
+#define DSHOWCAPTURE_VERSION_PATCH 0
 
 #define MAKE_DSHOWCAPTURE_VERSION(major, minor, patch) \
 	((major << 24) | (minor << 16) | (patch))
@@ -58,6 +58,8 @@ typedef std::function<void(const VideoConfig &config, unsigned char *data,
 typedef std::function<void(const AudioConfig &config, unsigned char *data,
 			   size_t size, long long startTime, long long stopTime)>
 	AudioProc;
+
+typedef std::function<void()> ReactivateProc;
 
 enum class InitGraph {
 	False,
@@ -86,6 +88,7 @@ enum class VideoFormat {
 	NV12,
 	YV12,
 	Y800,
+	P010,
 
 	/* packed YUV formats */
 	YVYU = 300,
@@ -96,6 +99,7 @@ enum class VideoFormat {
 	/* encoded formats */
 	MJPEG = 400,
 	H264,
+	HEVC,
 };
 
 enum class AudioFormat {
@@ -162,6 +166,7 @@ struct Config : DeviceId {
 
 struct VideoConfig : Config {
 	VideoProc callback;
+	ReactivateProc reactivateCallback;
 
 	/** Desired width/height of video. */
 	int cx = 0, cy_abs = 0;

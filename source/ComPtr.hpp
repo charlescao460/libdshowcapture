@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Hugh Bailey <obs.jim@gmail.com>
+ * Copyright (c) 2023 Lain Bailey <lain@obsproject.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,7 +53,7 @@ public:
 		if (ptr)
 			ptr->AddRef();
 	}
-	inline ComPtr(ComPtr<T> &&c) : ptr(c.ptr) { c.ptr = nullptr; }
+	inline ComPtr(ComPtr<T> &&c) noexcept : ptr(c.ptr) { c.ptr = nullptr; }
 	inline ~ComPtr() { Kill(); }
 
 	inline void Clear()
@@ -76,7 +76,7 @@ public:
 		return *this;
 	}
 
-	inline ComPtr<T> &operator=(ComPtr<T> &&c)
+	inline ComPtr<T> &operator=(ComPtr<T> &&c) noexcept
 	{
 		if (&ptr != &c.ptr) {
 			Kill();

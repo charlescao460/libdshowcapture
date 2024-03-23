@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -32,8 +32,8 @@ typedef void (*CaptureCallback)(void *param, IMediaSample *sample);
 
 struct PinCaptureInfo {
 	std::function<void(IMediaSample *sample)> callback;
-	GUID expectedMajorType;
-	GUID expectedSubType;
+	GUID expectedMajorType{};
+	GUID expectedSubType{};
 };
 
 class CapturePin : public IPin, public IMemInputPin {

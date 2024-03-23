@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,7 @@ void InfoHR(const wchar_t *str, HRESULT hr)
 
 void DebugHR(const wchar_t *str, HRESULT hr)
 {
-	Info(L"%s (0x%08lX): %s", str, hr, ConvertHRToEnglish(hr).c_str());
+	Debug(L"%s (0x%08lX): %s", str, hr, ConvertHRToEnglish(hr).c_str());
 }
 
 }; /* namespace DShow */

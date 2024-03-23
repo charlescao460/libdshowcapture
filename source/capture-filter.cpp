@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -501,9 +501,17 @@ STDMETHODIMP CaptureFilter::FindPin(LPCWSTR Id, IPin **ppPin)
 {
 	PrintFunc(L"CaptureFilter::FindPin");
 
-	DSHOW_UNUSED(Id);
-	DSHOW_UNUSED(ppPin);
-	return E_NOTIMPL;
+	if (Id == nullptr || ppPin == nullptr)
+		return E_POINTER;
+
+	if (lstrcmpW(Id, CAPTURE_PIN_NAME) == 0) {
+		*ppPin = pin;
+		pin->AddRef();
+		return S_OK;
+	} else {
+		*ppPin = nullptr;
+		return VFW_E_NOT_FOUND;
+	}
 }
 
 STDMETHODIMP CaptureFilter::QueryFilterInfo(FILTER_INFO *pInfo)

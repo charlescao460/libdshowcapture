@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ using namespace std;
 struct EncodedData {
 	vector<unsigned char> data;
 
-	inline EncodedData() {}
+	inline EncodedData() = default;
 
 	inline EncodedData(unsigned char *data_, size_t size)
 	{

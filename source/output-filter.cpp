@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -35,9 +35,11 @@ namespace DShow {
 #define VIDEO_PIN_NAME L"Video Output"
 #define AUDIO_PIN_NAME L"Audio Output"
 
+OutputPin::OutputPin(OutputFilter *filter_) : refCount(0), filter(filter_) {}
+
 OutputPin::OutputPin(OutputFilter *filter_, VideoFormat format, int cx, int cy,
 		     long long interval)
-	: refCount(0), filter(filter_)
+	: OutputPin(filter_)
 {
 	curCX = cx;
 	curCY = cy;
@@ -645,6 +647,15 @@ public:
 	}
 };
 
+OutputFilter::OutputFilter()
+	: refCount(0),
+	  state(State_Stopped),
+	  graph(nullptr),
+	  pin(new OutputPin(this)),
+	  misc(new SourceMiscFlags)
+{
+}
+
 OutputFilter::OutputFilter(VideoFormat format, int cx, int cy,
 			   long long interval)
 	: refCount(0),
@@ -778,9 +789,17 @@ STDMETHODIMP OutputFilter::FindPin(LPCWSTR Id, IPin **ppPin)
 {
 	PrintFunc(L"OutputFilter::FindPin");
 
-	DSHOW_UNUSED(Id);
-	DSHOW_UNUSED(ppPin);
-	return E_NOTIMPL;
+	if (Id == nullptr || ppPin == nullptr)
+		return E_POINTER;
+
+	if (lstrcmpW(Id, OUTPUT_PIN_NAME) == 0) {
+		*ppPin = pin;
+		pin->AddRef();
+		return S_OK;
+	} else {
+		*ppPin = nullptr;
+		return VFW_E_NOT_FOUND;
+	}
 }
 
 STDMETHODIMP OutputFilter::QueryFilterInfo(FILTER_INFO *pInfo)

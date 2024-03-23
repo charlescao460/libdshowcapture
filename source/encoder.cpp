@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Hugh Bailey <obs.jim@gmail.com>
+ *  Copyright (C) 2023 Lain Bailey <lain@obsproject.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -214,7 +214,7 @@ bool HVideoEncoder::SetupEncoder(IBaseFilter *filter)
 	frameTime /= config.fpsNumerator;
 
 	encoder = filter;
-	device = deviceFilter;
+	device = std::move(deviceFilter);
 	capture = new CaptureFilter(captureInfo);
 	output = new OutputFilter(VideoFormat::YV12, config.cx, config.cy,
 				  frameTime);
